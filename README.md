@@ -4,9 +4,9 @@ This program uses the [Sieve of
 Eratosthenes](https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes) to generate
 primes up to a given bound.
 
-On a standard low-end Intel Core i5 it produces around 5M primes per second.
+On a standard low-end Intel Core i5 it produces around 6.5M primes per second.
 
-It uses approximately _0.047√n_ bytes of RAM to compute primes up to _n._
+It uses approximately _0.024√n_ bytes of RAM to compute primes up to _n._
 
 ## Testing
 

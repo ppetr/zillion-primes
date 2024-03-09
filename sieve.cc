@@ -6,11 +6,19 @@
 #include <memory>
 #include <string>
 
+// After computing sqrt(N) initial primes, the rest is processed of chunks of
+// size `kChunkLength * Indexer::kSize`.
+// This number doesn't affect the output, but can be used to tweak
+// performance/memory consumption. Value of `50` means the chunks will occupy
+// ~256kb, which apparently works nicely for CPU caches.
+constexpr size_t kChunkLength = 50;
+
 // We store `kSize` numbers using `kBits`, excluding ones that are divisible by
 // several given smallest primes.
 constexpr struct Indexer {
   static constexpr ptrdiff_t kSize = 2 * 3 * 5 * 7 * 11 * 13;
   static constexpr ptrdiff_t kBits = 1 * 2 * 4 * 6 * 10 * 12;  // phi(kSize)
+  static constexpr int64_t kNextPrime = 17;
 
   constexpr Indexer() : indexOf(), atIndex() {
     ptrdiff_t i = 0;
@@ -103,9 +111,9 @@ int main(int argc, char* argv[]) {
     return 1;
   }
   const int64_t maximum = std::stoll(argv[1]);
-  // The number of `Indexer::kSize` blocks we need to represent all primes
+  // The number of `Indexer::kSize` pieces we need to represent all primes
   // <= sqrt(maximum).
-  const size_t kSieveSize =
+  const size_t initial_length =
       static_cast<size_t>(std::ceil(std::sqrt(maximum) / Indexer::kSize));
   for (int i : {2, 3, 5, 7, 11, 13}) {
     if (i > maximum) {
@@ -113,7 +121,9 @@ int main(int argc, char* argv[]) {
     }
     PrintLittleEndian(i);
   }
-  Range primes(0, kSieveSize);
+  // `primes` will hold all primes up to `initial_end`.
+  const int64_t initial_end = initial_length * Indexer::kSize;
+  Range primes(0, initial_length);
   // Seed the initial range of primes. It is OK to run the `ForPrimes` loop and
   // rune `primes.Sieve` inside it - primes are processed while they're
   // generated.
@@ -122,20 +132,22 @@ int main(int argc, char* argv[]) {
       exit(0);
     }
     PrintLittleEndian(p);
-    primes.Sieve(p, 17 * p);
+    primes.Sieve(p, Indexer::kNextPrime * p);
   });
   // This loop can be easily parallelized to utilize all cores, if desired.
-  const size_t block_count = (maximum + kSieveSize - 1) / kSieveSize;
-  for (int64_t block = 1; block < block_count; block++) {
-    const int64_t offset = block * kSieveSize * Indexer::kSize;
-    Range range(offset, kSieveSize);
+  constexpr size_t kChunkSize = Indexer::kSize * kChunkLength;
+  const size_t chunk_count =
+      (maximum - initial_end + kChunkSize - 1) / kChunkSize;
+  for (int64_t chunk = 0; chunk < chunk_count; chunk++) {
+    const int64_t offset = initial_end + chunk * kChunkSize;
+    Range range(offset, kChunkLength);
     primes.ForPrimes([&range](const int64_t p) { range.Sieve(p); });
-    range.ForPrimes([offset, maximum](const int64_t p) {
-      const int64_t n = p + offset;
-      if (n > maximum) {
+    range.ForPrimes([offset, maximum](const int64_t x) {
+      const int64_t p = x + offset;
+      if (p > maximum) {
         exit(0);
       }
-      PrintLittleEndian(n);
+      PrintLittleEndian(p);
     });
   }
   return 0;
