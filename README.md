@@ -1,5 +1,7 @@
 # Zillion primes
 
+*Disclaimer:* This is not an officially supported Google product.
+
 This program uses the [Sieve of
 Eratosthenes](https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes) to generate
 primes up to a given bound.
