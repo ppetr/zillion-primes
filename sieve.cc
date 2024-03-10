@@ -17,8 +17,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
-#include <memory>
 #include <string>
+#include <vector>
 
 // After computing sqrt(N) initial primes, the rest is processed of chunks of
 // size `kChunkLength * Indexer::kSize`.
@@ -61,10 +61,7 @@ constexpr int64_t MinusMod(int64_t x, int64_t p) {
 class Range {
  public:
   Range(int64_t offset, int64_t size)
-      : offset_(offset),
-        size_(size),
-        max_(size * Indexer::kSize),
-        bitsets_(std::make_unique<std::bitset<Indexer::kBits>[]>(size)) {
+      : offset_(offset), max_(size * Indexer::kSize), bitsets_(size) {
     if (offset == 0) {  // We don't consider 1 to be a prime.
       bitsets_[0].set(0);
     }
@@ -84,7 +81,7 @@ class Range {
   // primes.
   template <typename F>
   void ForPrimes(F&& f) const {
-    for (ptrdiff_t j = 0; j < size_; j++) {
+    for (ptrdiff_t j = 0; j < bitsets_.size(); j++) {
       auto& bitset = bitsets_[j];
       const int64_t offset = j * Indexer::kSize;
       for (ptrdiff_t index = 0; index < Indexer::kBits; index++) {
@@ -99,9 +96,7 @@ class Range {
   const int64_t offset_;
   // The number of numbers represented by this range.
   const int64_t max_;
-  // The number of elements in `bitsets_`.
-  const int64_t size_;
-  std::unique_ptr<std::bitset<Indexer::kBits>[]> bitsets_;
+  std::vector<std::bitset<Indexer::kBits>> bitsets_;
 };
 
 // Outputs `p` to stdout as a 64-bit little-endian number.
