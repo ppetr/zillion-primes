@@ -86,7 +86,7 @@ class Range {
       const int64_t offset = j * Indexer::kSize;
       for (ptrdiff_t index = 0; index < Indexer::kBits; index++) {
         if (!bitset[index]) {
-          std::forward<F>(f)(offset + kIndexer.atIndex[index]);
+          f(offset + kIndexer.atIndex[index]);
         }
       }
     }
