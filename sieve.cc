@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <bitset>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -122,8 +123,8 @@ int main(int argc, char* argv[]) {
   const int64_t maximum = std::stoll(argv[1]);
   // The number of `Indexer::kSize` pieces we need to represent all primes
   // <= sqrt(maximum).
-  const size_t initial_length =
-      static_cast<size_t>(std::ceil(std::sqrt(maximum) / Indexer::kSize));
+  const size_t initial_length = static_cast<size_t>(
+      std::ceil(std::sqrt(static_cast<long double>(maximum)) / Indexer::kSize));
   for (int i : {2, 3, 5, 7, 11, 13}) {
     if (i > maximum) {
       exit(0);
@@ -132,6 +133,7 @@ int main(int argc, char* argv[]) {
   }
   // `primes` will hold all primes up to `initial_end`.
   const int64_t initial_end = initial_length * Indexer::kSize;
+  assert(initial_end * initial_end >= maximum);
   Range primes(0, initial_length);
   // Seed the initial range of primes. It is OK to run the `ForPrimes` loop and
   // rune `primes.Sieve` inside it - primes are processed while they're
