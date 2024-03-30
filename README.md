@@ -34,6 +34,6 @@ $ clang++ -O3 sieve.cc -o sieve
 The first 50.000.000 primes should satisfy the following hash:
 
 ```sh
-$ ~/sieve 982451653 | sha256sum
+$ ./sieve 982451653 | sha256sum
 17d28fa909939b450dbd6b8923a1001c61bdc8cedb5e44a07f9f90b4d36ab279  -
 ```
